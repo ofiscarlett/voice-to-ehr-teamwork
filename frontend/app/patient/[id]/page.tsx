@@ -1,78 +1,125 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import VoiceRecorder from '@/components/ehr/VoiceRecorder';
 import PatientHeader from '@/components/patient/PatientHeader';
 import BackButton from '@/components/common/BackButton';
-import { useParams } from 'next/navigation';
 
 export default function PatientPage() {
   const router = useRouter();
   const params = useParams();
-  const [transcribedText, setTranscribedText] = useState('');
-  const [showModal, setShowModal] = useState(false);
 
-  const patientId = params?.id as string;
+  const [transcribedText, setTranscribedText] = useState('');
+  const [structuredEhr, setStructuredEhr] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState('');
+
+
+  // old patient id has issue
+  //const patientId = params?.id as string;
+  // Safely extract patientId
+  const patientId = typeof params.id === 'string' ? params.id : undefined;
 
   const handleTranscriptionComplete = (text: string) => {
     setTranscribedText(text);
   };
 
-  const handleStartEHR = () => {
-    // Here we will send just the raw text to the backend
-    console.log('Sending raw text to backend:', transcribedText);
-    
-    // Example of what the backend API call might look like:
+  const handleStartEHR = async () => {
+    if (!transcribedText) {
+      setError('Please record some audio first.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      console.log('Sending raw text to backend:', transcribedText);
+
+      const response = await fetch('/api/structured-ehr-api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: transcribedText }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === 'success') {
+        setStructuredEhr(result.data);
+        setShowModal(true);
+      } else {
+        throw new Error(result.message || 'Failed to process EHR');
+      }
+
+    } catch (err: any) {
+      console.error('Error processing EHR:', err);
+      setError(err.message || 'An error occurred while processing EHR');
+    } finally {
+      setIsProcessing(false);
+    }
+
+    // Example: fallback direct request (if you ever switch API)
     // fetch('/api/process-ehr', {
     //   method: 'POST',
     //   headers: {
     //     'Content-Type': 'application/json',
     //   },
-    //   body: JSON.stringify({ text: transcribedText })
+    //   body: JSON.stringify({ text: transcribedText }),
     // });
   };
 
-  if (!patientId) {
-    return <div>Loading...</div>;
-  }
+  if (!patientId) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold">Check and modify EHR</h1>
+            <h1 className="text-2xl font-semibold">Review and Edit EHR</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-8">
-            {/* Left Container */}
+            {/* Left Panel */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <PatientHeader patientId={patientId} />
-              <VoiceRecorder 
-                patientId={patientId} 
+              <VoiceRecorder
+                patientId={patientId}
                 onTranscriptionComplete={handleTranscriptionComplete}
               />
               <div className="mt-8">
-                <BackButton href="/dashboard" label="Patient's dashboard" />
+                <BackButton href="/dashboard" label="Back to Dashboard" />
               </div>
             </div>
 
-            {/* Right Container */}
+            {/* Right Panel */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="h-full flex flex-col">
                 <div className="flex-grow">
                   <div className="h-96 bg-gray-50 p-4 rounded border overflow-y-auto">
-                    {transcribedText || 'Transcribed text will appear here...'}
+                    {structuredEhr ? (
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Symptoms:</strong> {structuredEhr.report?.symptoms}</div>
+                        <div><strong>Diagnosis:</strong> {structuredEhr.report?.diagnosis}</div>
+                        <div><strong>Treatment:</strong> {structuredEhr.report?.treatment}</div>
+                        <div><strong>OTHERS:</strong> {structuredEhr.report?.OTHERS}</div>
+                      </div>
+                    ) : (
+                      <p>{transcribedText || 'Transcribed text will appear here...'}</p>
+                    )}
                   </div>
                 </div>
-                <div className="mt-8">
+
+                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+                <div className="mt-4">
                   <button
-                    onClick={() => setShowModal(true)}
-                    disabled={!transcribedText}
-                    className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleStartEHR}
+                    disabled={!transcribedText || isProcessing}
+                    className="w-full p-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                   >
-                    Save EHR
+                    {isProcessing ? 'Processing...' : 'Start EHR'}
                   </button>
                 </div>
               </div>
@@ -92,20 +139,20 @@ export default function PatientPage() {
                 ✕
               </button>
             </div>
-            <h3 className="text-xl font-bold mb-4">✓ EHR saved successfully</h3>
+            <h3 className="text-xl font-bold mb-4">✓ EHR processed successfully</h3>
             <ul className="space-y-2 mb-6">
-              <li>• Close this modal window to continue modifying from where you left.</li>
-              <li>• Go back to Patient's dashboard for starting new EHR.</li>
+              <li>• You can continue editing the structured result.</li>
+              <li>• Or return to the dashboard to start another EHR.</li>
             </ul>
             <button
               onClick={() => router.push('/dashboard')}
               className="w-full bg-black text-white p-3 rounded hover:bg-gray-800"
             >
-              Patient's dashboard
+              Back to Dashboard
             </button>
           </div>
         </div>
       )}
     </div>
   );
-} 
+}

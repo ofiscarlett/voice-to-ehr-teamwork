@@ -36,7 +36,15 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      //old code
       mediaRecorder.current = new MediaRecorder(stream);
+      //new code
+      /*
+      mediaRecorder.current = new MediaRecorder(stream, {
+        mimeType: 'audio/webm'
+      });
+      */
+      //end of new code
       audioChunks.current = [];
 
       mediaRecorder.current.ondataavailable = (event) => {
@@ -72,14 +80,18 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
       const apiKey = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
+      console.log("🔑 env API key:", process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
       if (!apiKey) {
         throw new Error('Deepgram API key not found');
       }
-
+      console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
+      console.log("Audio blob size:", audioBlob.size); // should not be 0
+      
       const response = await fetch('https://api.deepgram.com/v1/listen?model=general&language=en-US', {
         method: 'POST',
         headers: {
           'Authorization': `Token ${apiKey}`,
+          //old code
           'Content-Type': 'audio/wav'
         },
         body: audioBlob
@@ -113,7 +125,11 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
           }
         });
 
+        //old code
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+
+        console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
+        console.log("Audio blob size:", audioBlob.size); // should not be 0
         const transcript = await transcribeAudio(audioBlob);
         
         // Only save transcription if authenticated
