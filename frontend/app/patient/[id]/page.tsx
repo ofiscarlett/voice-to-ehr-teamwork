@@ -18,12 +18,13 @@ export default function PatientPage() {
 
 
   // old patient id has issue
-  //const patientId = params?.id as string;
+  const patientId = params?.id as string;
   // Safely extract patientId
-  const patientId = typeof params.id === 'string' ? params.id : undefined;
+  //const patientId = typeof params.id === 'string' ? params.id : undefined;
 
   const handleTranscriptionComplete = (text: string) => {
     setTranscribedText(text);
+    console.log('Transcription complete:', text);
   };
 
   const handleStartEHR = async () => {
@@ -45,11 +46,15 @@ export default function PatientPage() {
       });
 
       const result = await response.json();
-
-      if (response.ok && result.status === 'success') {
+      console.log('Debug response from backend:', result);
+      //old code
+      //if (response.ok && result.status === 'success') {
+      //new
+      if (response.ok && result?.status === 'success' && result.data?.report) {
         setStructuredEhr(result.data);
         setShowModal(true);
       } else {
+        console.warn('API returned warning:', result);
         throw new Error(result.message || 'Failed to process EHR');
       }
 
@@ -93,8 +98,8 @@ export default function PatientPage() {
               </div>
             </div>
 
-            {/* Right Panel */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+ {/* Right Panel */}
+ <div className="bg-white rounded-lg shadow-md p-6">
               <div className="h-full flex flex-col">
                 <div className="flex-grow">
                   <div className="h-96 bg-gray-50 p-4 rounded border overflow-y-auto">

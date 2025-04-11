@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
+import { text } from 'stream/consumers';
 
 interface VoiceRecorderProps {
   patientId: string;
@@ -33,7 +34,7 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
     }
   }, [patientId, onTranscriptionComplete, doctor]);
 
-  const startRecording = async () => {
+  const startRecording = async () => {    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       //old code
@@ -99,11 +100,20 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Deepgram error response:', errorText);//debug code
         throw new Error(`Deepgram API error: ${response.statusText}. ${errorText}`);
       }
 
       const data = await response.json();
-      return data.results?.channels[0]?.alternatives[0]?.transcript || '';
+      console.log("Deepgram response:", data);
+      //new code
+      const transcript = data?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
+      if (!transcript || transcript.trim() === '') {
+        throw new Error('No speech detected in audio.');
+      }
+  
+      return transcript;
+      //return data.results?.channels[0]?.alternatives[0]?.transcript || '';
     } catch (error) {
       console.error('Transcription error:', error);
       throw error;
