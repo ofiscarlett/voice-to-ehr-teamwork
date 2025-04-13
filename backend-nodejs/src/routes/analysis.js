@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-//const { OpenAI } = require('openai'); //deekgram openai 
 const dotenv = require('dotenv');
 const createClient = require ('@azure-rest/ai-inference').default;
 const { AzureKeyCredential } = require('@azure/core-auth');
@@ -170,22 +169,14 @@ router.post('/analyze', async (req, res) => {
     console.log("Warnings:", aiResponse.warnings || 'N/A');
     console.log("End of AI response\n");
 
-    try {
-      const forwardRes = await axios.post('http://localhost:3000/patient', aiResponse);
-      console.log('Sent to frontend:', forwardRes.statusText);
-    } catch (forwardErr) {
-      console.warn('Forwarding failed:', forwardErr.message);
-    }
-
-   //res.json(aiResponse);
-     res.status(200).json({
+    return res.status(200).json({
       status: "success",
       code: 200,
       message: 'Analysis completed successfully',
       data: aiResponse,
       error: false
-    }
-     );
+    });
+
   } catch (err) {
     console.error('Analysis error:', err);
     res.status(500).json({

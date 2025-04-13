@@ -19,6 +19,7 @@ export default function PatientPage() {
 
   // old patient id has issue
   const patientId = params?.id as string;
+  console.log('Patient ID:', patientId);
   // Safely extract patientId
   //const patientId = typeof params.id === 'string' ? params.id : undefined;
 
@@ -38,32 +39,36 @@ export default function PatientPage() {
 
     try {
       console.log('Sending raw text to backend:', transcribedText);
-
+    
       const response = await fetch('/api/structured-ehr-api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: transcribedText }),
       });
-
+    
       const result = await response.json();
       console.log('Debug response from backend:', result);
-      //old code
-      //if (response.ok && result.status === 'success') {
-      //new
-      if (response.ok && result?.status === 'success' && result.data?.report) {
-        setStructuredEhr(result.data);
-        setShowModal(true);
+    
+      if (response.ok && result?.status === 'success') {
+        if (result.data?.data?.report) {
+          setStructuredEhr(result.data.data);
+          setShowModal(true);
+        } else {
+          console.warn('API returned warning: Analysis completed, but no report available', result);
+          setError('EHR structure not found in the result.');
+        }
       } else {
-        console.warn('API returned warning:', result);
+        console.warn('API returned error:', result);
         throw new Error(result.message || 'Failed to process EHR');
       }
-
+    
     } catch (err: any) {
       console.error('Error processing EHR:', err);
       setError(err.message || 'An error occurred while processing EHR');
     } finally {
       setIsProcessing(false);
     }
+
 
     // Example: fallback direct request (if you ever switch API)
     // fetch('/api/process-ehr', {
@@ -74,8 +79,17 @@ export default function PatientPage() {
     //   body: JSON.stringify({ text: transcribedText }),
     // });
   };
-
+  //save ehr to localstorage, but next.js part need more time
+  // to do research, this function just give for save btn
+  const handleSaveEHR = () => {
+    if (structuredEhr && patientId && structuredEhr.report) {
+      localStorage.setItem(`ehr_${patientId}`, JSON.stringify(structuredEhr));
+      setShowModal(true);
+      console.log('EHR saved to localStorage:', structuredEhr);
+      //router.push('/dashboard');
+    } };
   if (!patientId) return <div>Loading...</div>;
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,7 +112,7 @@ export default function PatientPage() {
               </div>
             </div>
 
- {/* Right Panel */}
+ {/* Right Container */}
  <div className="bg-white rounded-lg shadow-md p-6">
               <div className="h-full flex flex-col">
                 <div className="flex-grow">
@@ -109,6 +123,31 @@ export default function PatientPage() {
                         <div><strong>Diagnosis:</strong> {structuredEhr.report?.diagnosis}</div>
                         <div><strong>Treatment:</strong> {structuredEhr.report?.treatment}</div>
                         <div><strong>OTHERS:</strong> {structuredEhr.report?.OTHERS}</div>
+{/* Add warming and  */}
+                        {structuredEhr.report.aiDiagnosis && (
+                          <div>
+                            <strong>AI Diagnosis Suggestions:</strong>{' '}
+                            {structuredEhr.report.aiDiagnosis.possibleConditions.join(', ')}
+                          </div>
+                        )}
+
+                        {structuredEhr.report.aiTreatment && (
+                          <div>
+                            <strong>AI Treatment Suggestions:</strong>{' '}
+                            {structuredEhr.report.aiTreatment.suggestions.join(', ')}
+                          </div>
+                        )}
+
+                        {structuredEhr.warnings?.length > 0 && (
+                          <div className="text-yellow-700 bg-yellow-100 p-3 rounded mt-4">
+                            <strong>Warnings:</strong>
+                            <ul className="list-disc pl-5">
+                              {structuredEhr.warnings.map((warn: string, i: number) => (
+                                <li key={i}>{warn}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p>{transcribedText || 'Transcribed text will appear here...'}</p>
@@ -119,6 +158,13 @@ export default function PatientPage() {
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
                 <div className="mt-4">
+                {structuredEhr ? (
+                  <button
+                    onClick={handleSaveEHR}
+                    className="w-full p-4 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Save EHR
+                  </button> ) : (
                   <button
                     onClick={handleStartEHR}
                     disabled={!transcribedText || isProcessing}
@@ -126,6 +172,7 @@ export default function PatientPage() {
                   >
                     {isProcessing ? 'Processing...' : 'Start EHR'}
                   </button>
+                )}
                 </div>
               </div>
             </div>
@@ -146,7 +193,7 @@ export default function PatientPage() {
             </div>
             <h3 className="text-xl font-bold mb-4">✓ EHR processed successfully</h3>
             <ul className="space-y-2 mb-6">
-              <li>• You can continue editing the structured result.</li>
+              <li>• You can continue editing result by click X.</li>
               <li>• Or return to the dashboard to start another EHR.</li>
             </ul>
             <button
