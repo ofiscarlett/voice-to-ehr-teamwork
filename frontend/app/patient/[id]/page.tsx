@@ -13,6 +13,9 @@ export default function PatientPage() {
   const [transcribedText, setTranscribedText] = useState('');
   const [structuredEhr, setStructuredEhr] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,7 +55,8 @@ export default function PatientPage() {
       if (response.ok && result?.status === 'success') {
         if (result.data?.data?.report) {
           setStructuredEhr(result.data.data);
-          setShowModal(true);
+          //setShowModal(true);
+          setShowAnalysisModal(true);
         } else {
           console.warn('API returned warning: Analysis completed, but no report available', result);
           setError('EHR structure not found in the result.');
@@ -82,12 +86,24 @@ export default function PatientPage() {
   //save ehr to localstorage, but next.js part need more time
   // to do research, this function just give for save btn
   const handleSaveEHR = () => {
+    try {
+      // Save the structuredEHR to localStorage
+      console.log('Saving EHR:', structuredEhr);
+      // Check if patientId and report exist
     if (structuredEhr && patientId && structuredEhr.report) {
       localStorage.setItem(`ehr_${patientId}`, JSON.stringify(structuredEhr));
-      setShowModal(true);
+      setSaveMessage('EHR saved successfully!');
+      //setShowModal(true);
       console.log('EHR saved to localStorage:', structuredEhr);
       //router.push('/dashboard');
-    } };
+    }else {
+      setSaveMessage('Failed to save EHR. Please try again.');
+    }}catch (error) {
+      console.error('Error saving EHR:', error);
+      setSaveMessage('Error saving EHR. Please try again.');
+    }finally {
+      setShowSaveModal(true);
+    }};
   if (!patientId) return <div>Loading...</div>;
 
 
@@ -179,32 +195,38 @@ export default function PatientPage() {
           </div>
         </div>
       </main>
-
-      {showModal && (
+{/*First Modal：analysis done */}
+      {showAnalysisModal  && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <div className="flex justify-end">
+          <h3 className="text-lg font-bold mb-4">Analysis completed</h3>
+          <p className="mb-4 text-sm text-gray-600">
+            You can now review and optionally save this report.
+          </p>
               <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+         onClick={() => setShowAnalysisModal(false)}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
               >
-                ✕
+                Ok
               </button>
             </div>
-            <h3 className="text-xl font-bold mb-4">✓ EHR processed successfully</h3>
-            <ul className="space-y-2 mb-6">
-              <li>• You can continue editing result by click X.</li>
-              <li>• Or return to the dashboard to start another EHR.</li>
-            </ul>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full bg-black text-white p-3 rounded hover:bg-gray-800"
-            >
-              Back to Dashboard
-            </button>
-          </div>
         </div>
       )}
+{/* Second Modal: save success */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <p className="mb-4 text-sm text-gray-600">{saveMessage}</p>
+            <button
+              onClick={() => setShowSaveModal(false)}
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            >
+              Ok
+            </button>
+          </div>
     </div>
-  );
+  )}
+        </div>
+        );
 }
+
