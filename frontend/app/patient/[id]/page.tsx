@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import VoiceRecorder from '@/components/ehr/VoiceRecorder';
 import PatientHeader from '@/components/patient/PatientHeader';
 import BackButton from '@/components/common/BackButton';
+import EHRActions from '@/components/ehr/EHRActions';//add EHRActions
 
 export default function PatientPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function PatientPage() {
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  //const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
 
 
@@ -112,19 +113,25 @@ export default function PatientPage() {
       <main className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold">Review and Edit EHR</h1>
-          </div>
-
+          <h1 className="text-2xl font-semibold">Check and modify EHR</h1>          </div>
           <div className="grid grid-cols-2 gap-8">
-            {/* Left Panel */}
+            {/* Left Container */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <PatientHeader patientId={patientId} />
-              <VoiceRecorder
-                patientId={patientId}
+              <VoiceRecorder 
+                patientId={patientId} 
                 onTranscriptionComplete={handleTranscriptionComplete}
-              />
+              />  
+              <button
+                    onClick={handleStartEHR}
+                    disabled={!transcribedText || isProcessing}
+                     className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? 'Processing...' : 'Start EHR'}
+                  </button>
+                  <p className="text-sm text-gray-500 text-center mt-2">This will turn your transcripted voice into an EHR</p>
               <div className="mt-8">
-                <BackButton href="/dashboard" label="Back to Dashboard" />
+                <BackButton href="/dashboard" label="Patient's dashboard" />
               </div>
             </div>
 
@@ -135,10 +142,39 @@ export default function PatientPage() {
                   <div className="h-96 bg-gray-50 p-4 rounded border overflow-y-auto">
                     {structuredEhr ? (
                       <div className="space-y-2 text-sm">
-                        <div><strong>Symptoms:</strong> {structuredEhr.report?.symptoms}</div>
+                        {/* try the doctor edit model  */}
+                        {/* old code save area
+                       <div><strong>Symptoms:</strong> {structuredEhr.report?.symptoms}</div>
                         <div><strong>Diagnosis:</strong> {structuredEhr.report?.diagnosis}</div>
                         <div><strong>Treatment:</strong> {structuredEhr.report?.treatment}</div>
                         <div><strong>OTHERS:</strong> {structuredEhr.report?.OTHERS}</div>
+ 
+                          */}
+                       <div><strong>EHR note</strong></div>
+                       <textarea
+                       className='w-full min-h-[10rem] max-h-[20rem] p-2 border rounded resize-y font-mono'
+                        value={
+                          `Symptoms: ${structuredEhr.report?.symptoms || ''}\n` +
+                          `Diagnosis: ${structuredEhr.report?.diagnosis || ''}\n` +
+                          `Treatment: ${structuredEhr.report?.treatment || ''}\n` +
+                          `Other: ${structuredEhr.report?.OTHERS || ''}`
+                        }
+                        onChange={(e) => {
+                          // Split the textarea value into lines
+                          const lines = e.target.value.split('\n');
+                          setStructuredEhr((prev: any) => ({
+                            ...prev,
+                            report: {
+                              ...prev.report,
+                              symptoms: lines[0].replace('Symptoms: ', ''),
+                              diagnosis: lines[1].replace('Diagnosis: ', ''),
+                              treatment: lines[2].replace('Treatment: ', ''),
+                              OTHERS: lines[3].replace('Other: ', ''),
+                            }
+                          }));
+                        }} 
+                        />
+
 {/* Add warming and  */}
                         {structuredEhr.report.aiDiagnosis && (
                           <div>
@@ -170,26 +206,12 @@ export default function PatientPage() {
                     )}
                   </div>
                 </div>
-
-                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
-                <div className="mt-4">
-                {structuredEhr ? (
-                  <button
-                    onClick={handleSaveEHR}
-                    className="w-full p-4 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Save EHR
-                  </button> ) : (
-                  <button
-                    onClick={handleStartEHR}
-                    disabled={!transcribedText || isProcessing}
-                    className="w-full p-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {isProcessing ? 'Processing...' : 'Start EHR'}
-                  </button>
-                )}
+                <div className="mt-8">
+                  <EHRActions onSave={handleSaveEHR} disabled={!structuredEhr} />
                 </div>
+                  {/*              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}*/}
+
+
               </div>
             </div>
           </div>

@@ -7,9 +7,11 @@ import { text } from 'stream/consumers';
 interface VoiceRecorderProps {
   patientId: string;
   onTranscriptionComplete?: (text: string) => void;
+  //add start ehr
+  onStartEHR?: () => void;
 }
 
-export default function VoiceRecorder({ patientId, onTranscriptionComplete }: VoiceRecorderProps) {
+export default function VoiceRecorder({ patientId, onTranscriptionComplete, onStartEHR }: VoiceRecorderProps) {
   const { doctor } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -37,15 +39,7 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
   const startRecording = async () => {    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      //old code
       mediaRecorder.current = new MediaRecorder(stream);
-      //new code
-      /*
-      mediaRecorder.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      });
-      */
-      //end of new code
       audioChunks.current = [];
 
       mediaRecorder.current.ondataavailable = (event) => {
@@ -203,10 +197,12 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
           {error}
         </div>
       )}
-
+ {/**Cancel the Start EHR btn and move to Page.tsx */}
+ {/*
       <div className="w-full">
         <button
-          onClick={handleStartEHR}
+          //onClick={handleStartEHR}
+          onClick={onStartEHR}
           disabled={!transcribedText}
           className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -214,6 +210,7 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
         </button>
         <p className="text-sm text-gray-500 text-center mt-2">This will turn your transcripted voice into an EHR</p>
       </div>
+      */}
     </div>
   );
 } 

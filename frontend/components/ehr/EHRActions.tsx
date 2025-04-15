@@ -25,7 +25,9 @@ export default function EHRActions({ onSave, disabled = false }: EHRActionsProps
         <button
           onClick={handleSave}
           disabled={disabled}
-          className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          //className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+
         >
           Save EHR
         </button>

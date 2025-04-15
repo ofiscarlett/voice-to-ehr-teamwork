@@ -135,7 +135,8 @@ router.post('/analyze', async (req, res) => {
 
     //const rawText = await result.body;
     const rawText = result.body;
-    //console.log('[AI RAW JSON]', JSON.stringify(rawText, null, 2));
+    console.log('Received raw text:', req.body.text);
+    console.log('[AI RAW JSON]', JSON.stringify(rawText, null, 2));
 
     const aiResponse = JSON.parse(sanitizeJSON(rawText.choices?.[0]?.message?.content || '{}'));
     aiResponse.warnings = aiResponse.warnings || [];
