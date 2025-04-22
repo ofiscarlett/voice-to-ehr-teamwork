@@ -1,50 +1,119 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import VoiceRecorder from '@/components/ehr/VoiceRecorder';
 import PatientHeader from '@/components/patient/PatientHeader';
 import BackButton from '@/components/common/BackButton';
-import { useParams } from 'next/navigation';
+import EHRActions from '@/components/ehr/EHRActions';//add EHRActions
 
 export default function PatientPage() {
   const router = useRouter();
   const params = useParams();
-  const [transcribedText, setTranscribedText] = useState('');
-  const [showModal, setShowModal] = useState(false);
 
+  const [transcribedText, setTranscribedText] = useState('');
+  const [structuredEhr, setStructuredEhr] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+  //const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState('');
+
+
+  // old patient id has issue
   const patientId = params?.id as string;
+  console.log('Patient ID:', patientId);
+  // Safely extract patientId
+  //const patientId = typeof params.id === 'string' ? params.id : undefined;
 
   const handleTranscriptionComplete = (text: string) => {
     setTranscribedText(text);
+    console.log('Transcription complete:', text);
   };
 
-  const handleStartEHR = () => {
-    // Here we will send just the raw text to the backend
-    console.log('Sending raw text to backend:', transcribedText);
+  const handleStartEHR = async () => {
+    if (!transcribedText) {
+      setError('Please record some audio first.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      console.log('Sending raw text to backend:', transcribedText);
     
-    // Example of what the backend API call might look like:
+      const response = await fetch('/api/structured-ehr-api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: transcribedText }),
+      });
+    
+      const result = await response.json();
+      console.log('Debug response from backend:', result);
+    
+      if (response.ok && result?.status === 'success') {
+        if (result.data?.data?.report) {
+          setStructuredEhr(result.data.data);
+          //setShowModal(true);
+          setShowAnalysisModal(true);
+        } else {
+          console.warn('API returned warning: Analysis completed, but no report available', result);
+          setError('EHR structure not found in the result.');
+        }
+      } else {
+        console.warn('API returned error:', result);
+        throw new Error(result.message || 'Failed to process EHR');
+      }
+    
+    } catch (err: any) {
+      console.error('Error processing EHR:', err);
+      setError(err.message || 'An error occurred while processing EHR');
+    } finally {
+      setIsProcessing(false);
+    }
+
+
+    // Example: fallback direct request (if you ever switch API)
     // fetch('/api/process-ehr', {
     //   method: 'POST',
     //   headers: {
     //     'Content-Type': 'application/json',
     //   },
-    //   body: JSON.stringify({ text: transcribedText })
+    //   body: JSON.stringify({ text: transcribedText }),
     // });
   };
+  //save ehr to localstorage, but next.js part need more time
+  // to do research, this function just give for save btn
+  const handleSaveEHR = () => {
+    try {
+      // Save the structuredEHR to localStorage
+      console.log('Saving EHR:', structuredEhr);
+      // Check if patientId and report exist
+    if (structuredEhr && patientId && structuredEhr.report) {
+      localStorage.setItem(`ehr_${patientId}`, JSON.stringify(structuredEhr));
+      setSaveMessage('EHR saved successfully!');
+      //setShowModal(true);
+      console.log('EHR saved to localStorage:', structuredEhr);
+      //router.push('/dashboard');
+    }else {
+      setSaveMessage('Failed to save EHR. Please try again.');
+    }}catch (error) {
+      console.error('Error saving EHR:', error);
+      setSaveMessage('Error saving EHR. Please try again.');
+    }finally {
+      setShowSaveModal(true);
+    }};
+  if (!patientId) return <div>Loading...</div>;
 
-  if (!patientId) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold">Check and modify EHR</h1>
-          </div>
-
+          <h1 className="text-2xl font-semibold">Check and modify EHR</h1>          </div>
           <div className="grid grid-cols-2 gap-8">
             {/* Left Container */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -52,60 +121,134 @@ export default function PatientPage() {
               <VoiceRecorder 
                 patientId={patientId} 
                 onTranscriptionComplete={handleTranscriptionComplete}
-              />
+              />  
+              <button
+                    onClick={handleStartEHR}
+                    disabled={!transcribedText || isProcessing}
+                     className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? 'Processing...' : 'Start EHR'}
+                  </button>
+                  <p className="text-sm text-gray-500 text-center mt-2">This will turn your transcripted voice into an EHR</p>
               <div className="mt-8">
                 <BackButton href="/dashboard" label="Patient's dashboard" />
               </div>
             </div>
 
-            {/* Right Container */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+ {/* Right Container */}
+ <div className="bg-white rounded-lg shadow-md p-6">
               <div className="h-full flex flex-col">
                 <div className="flex-grow">
                   <div className="h-96 bg-gray-50 p-4 rounded border overflow-y-auto">
-                    {transcribedText || 'Transcribed text will appear here...'}
+                    {structuredEhr ? (
+                      <div className="space-y-2 text-sm">
+                        {/* try the doctor edit model  */}
+                        {/* old code save area
+                       <div><strong>Symptoms:</strong> {structuredEhr.report?.symptoms}</div>
+                        <div><strong>Diagnosis:</strong> {structuredEhr.report?.diagnosis}</div>
+                        <div><strong>Treatment:</strong> {structuredEhr.report?.treatment}</div>
+                        <div><strong>OTHERS:</strong> {structuredEhr.report?.OTHERS}</div>
+ 
+                          */}
+                       <div><strong>EHR note</strong></div>
+                       <textarea
+                       className='w-full min-h-[10rem] max-h-[20rem] p-2 border rounded resize-y font-mono'
+                        value={
+                          `Symptoms: ${structuredEhr.report?.symptoms || ''}\n` +
+                          `Diagnosis: ${structuredEhr.report?.diagnosis || ''}\n` +
+                          `Treatment: ${structuredEhr.report?.treatment || ''}\n` +
+                          `Other: ${structuredEhr.report?.OTHERS || ''}`
+                        }
+                        onChange={(e) => {
+                          // Split the textarea value into lines
+                          const lines = e.target.value.split('\n');
+                          setStructuredEhr((prev: any) => ({
+                            ...prev,
+                            report: {
+                              ...prev.report,
+                              symptoms: lines[0].replace('Symptoms: ', ''),
+                              diagnosis: lines[1].replace('Diagnosis: ', ''),
+                              treatment: lines[2].replace('Treatment: ', ''),
+                              OTHERS: lines[3].replace('Other: ', ''),
+                            }
+                          }));
+                        }} 
+                        />
+
+{/* Add warming and  */}
+                        {structuredEhr.report.aiDiagnosis && (
+                          <div>
+                            <strong>AI Diagnosis Suggestions:</strong>{' '}
+                            {structuredEhr.report.aiDiagnosis.possibleConditions.join(', ')}
+                          </div>
+                        )}
+
+                        {structuredEhr.report.aiTreatment && (
+                          <div>
+                            <strong>AI Treatment Suggestions:</strong>{' '}
+                            {structuredEhr.report.aiTreatment.suggestions.join(', ')}
+                          </div>
+                        )}
+
+                        {structuredEhr.warnings?.length > 0 && (
+                          <div className="text-yellow-700 bg-yellow-100 p-3 rounded mt-4">
+                            <strong>Warnings:</strong>
+                            <ul className="list-disc pl-5">
+                              {structuredEhr.warnings.map((warn: string, i: number) => (
+                                <li key={i}>{warn}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p>{transcribedText || 'Transcribed text will appear here...'}</p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-8">
-                  <button
-                    onClick={() => setShowModal(true)}
-                    disabled={!transcribedText}
-                    className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Save EHR
-                  </button>
+                  <EHRActions onSave={handleSaveEHR} disabled={!structuredEhr} />
                 </div>
+                  {/*              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}*/}
+
+
               </div>
             </div>
           </div>
         </div>
       </main>
-
-      {showModal && (
+{/*First Modal：analysis done */}
+      {showAnalysisModal  && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <div className="flex justify-end">
+          <h3 className="text-lg font-bold mb-4">Analysis completed</h3>
+          <p className="mb-4 text-sm text-gray-600">
+            You can now review and optionally save this report.
+          </p>
               <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+         onClick={() => setShowAnalysisModal(false)}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
               >
-                ✕
+                Ok
               </button>
             </div>
-            <h3 className="text-xl font-bold mb-4">✓ EHR saved successfully</h3>
-            <ul className="space-y-2 mb-6">
-              <li>• Close this modal window to continue modifying from where you left.</li>
-              <li>• Go back to Patient's dashboard for starting new EHR.</li>
-            </ul>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full bg-black text-white p-3 rounded hover:bg-gray-800"
-            >
-              Patient's dashboard
-            </button>
-          </div>
         </div>
       )}
+{/* Second Modal: save success */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <p className="mb-4 text-sm text-gray-600">{saveMessage}</p>
+            <button
+              onClick={() => setShowSaveModal(false)}
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            >
+              Ok
+            </button>
+          </div>
     </div>
-  );
-} 
+  )}
+        </div>
+        );
+}
+

@@ -1,0 +1,27 @@
+{
+    "case1": {
+      "text": "John Peterson, a 45-year-old male, presents with persistent headache for 3 days accompanied by nausea and sensitivity to light. He reports no prior history of migraines. Physical examination reveals normal vital signs with no neurological deficits. Diagnosis: migraine without aura. Treatment: ibuprofen 400mg every 6 hours as needed for pain, rest in a dark quiet room. Follow-up in 2 weeks if symptoms persist.",
+      "description": "Typical migraine case"
+    },
+    "case2": {
+      "text": "Sarah Lim, a 32-year-old female, complains of intermittent chest pain and shortness of breath during exercise for the past 2 months. No known cardiac history. Blood pressure is 130/85 mmHg, pulse 88 bpm. ECG shows nonspecific ST changes. She is recommended to undergo a stress test and echocardiogram for further evaluation.",
+      "description": "Cardiovascular symptoms case"
+    },
+    "case3": {
+      "text": "David Chen, a 10-year-old boy, presents with fever (38.5°C), sore throat, and swollen lymph nodes for 4 days. A rapid strep test comes back positive. Diagnosis: streptococcal pharyngitis. Treatment: prescribed penicillin VK 500mg twice daily for 10 days. Symptomatic relief with acetaminophen recommended.",
+      "description": "Strep throat infection case"
+    },
+    "case4": {
+      "text": "Today's weather forecast predicts a high of 28°C with scattered showers in the afternoon. In sports news, the Lakers beat the Celtics in overtime with a final score of 112-108. No significant updates in politics or economy.",
+      "description": "Non-medical text test case"
+    },
+    "case5": {
+      "text": "Emily Rogers, a 67-year-old female, presents with worsening shortness of breath, fatigue, and ankle swelling over the past 3 weeks. She has a history of hypertension and type 2 diabetes. On examination: blood pressure 140/90 mmHg, bilateral pitting edema, and crackles at the lung bases. Diagnosis: congestive heart failure. Treatment plan includes low sodium diet, furosemide 40mg daily, and close outpatient follow-up.",
+      "description": "Heart failure management case"
+    },
+    "case6": {
+      "text": "Michael Brown, a 29-year-old male, was involved in a motor vehicle accident. He is conscious but complains of severe pain in the right leg. X-ray confirms a mid-shaft femur fracture. Vital signs stable. No head trauma noted. Plan: surgical repair with intramedullary nail fixation, followed by physical rehabilitation.",
+      "description": "Trauma case with fracture"
+    }
+  }
+  

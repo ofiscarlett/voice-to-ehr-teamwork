@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
+import { text } from 'stream/consumers';
 
 interface VoiceRecorderProps {
   patientId: string;
@@ -33,7 +34,7 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
     }
   }, [patientId, onTranscriptionComplete, doctor]);
 
-  const startRecording = async () => {
+  const startRecording = async () => {    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
@@ -72,14 +73,18 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
       const apiKey = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
+      console.log("🔑 env API key:", process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
       if (!apiKey) {
         throw new Error('Deepgram API key not found');
       }
-
+      console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
+      console.log("Audio blob size:", audioBlob.size); // should not be 0
+      
       const response = await fetch('https://api.deepgram.com/v1/listen?model=general&language=en-US', {
         method: 'POST',
         headers: {
           'Authorization': `Token ${apiKey}`,
+          //old code
           'Content-Type': 'audio/wav'
         },
         body: audioBlob
@@ -87,11 +92,20 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Deepgram error response:', errorText);//debug code
         throw new Error(`Deepgram API error: ${response.statusText}. ${errorText}`);
       }
 
       const data = await response.json();
-      return data.results?.channels[0]?.alternatives[0]?.transcript || '';
+      console.log("Deepgram response:", data);
+      //new code
+      const transcript = data?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
+      if (!transcript || transcript.trim() === '') {
+        throw new Error('No speech detected in audio.');
+      }
+  
+      return transcript;
+      //return data.results?.channels[0]?.alternatives[0]?.transcript || '';
     } catch (error) {
       console.error('Transcription error:', error);
       throw error;
@@ -113,7 +127,11 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
           }
         });
 
+        //old code
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+
+        console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
+        console.log("Audio blob size:", audioBlob.size); // should not be 0
         const transcript = await transcribeAudio(audioBlob);
         
         // Only save transcription if authenticated
@@ -131,13 +149,14 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
       }
     }
   };
-
+/*
   const handleStartEHR = () => {
     if (!transcribedText) return;
     // Here we will send just the raw text to the backend
     console.log('Sending raw text to backend:', transcribedText);
     onTranscriptionComplete?.(transcribedText);
   };
+  */
 
   return (
     <div className="space-y-6">
@@ -177,10 +196,12 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
           {error}
         </div>
       )}
-
+ {/**Cancel the Start EHR btn and move to Page.tsx */}
+ {/*
       <div className="w-full">
         <button
-          onClick={handleStartEHR}
+          //onClick={handleStartEHR}
+          onClick={onStartEHR}
           disabled={!transcribedText}
           className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -188,6 +209,7 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
         </button>
         <p className="text-sm text-gray-500 text-center mt-2">This will turn your transcripted voice into an EHR</p>
       </div>
+      */}
     </div>
   );
 } 

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const analysisRouter = require('./routes/analysis');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +13,8 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/patients', require('./routes/patients'));
 app.use('/api/voice', require('./routes/voice'));
+app.use('/api/analysis', require('./routes/analysis'));
+
 
 // Health check
 app.get('/health', (req, res) => {
