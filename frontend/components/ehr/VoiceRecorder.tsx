@@ -7,11 +7,9 @@ import { text } from 'stream/consumers';
 interface VoiceRecorderProps {
   patientId: string;
   onTranscriptionComplete?: (text: string) => void;
-  //add start ehr
-  onStartEHR?: () => void;
 }
 
-export default function VoiceRecorder({ patientId, onTranscriptionComplete, onStartEHR }: VoiceRecorderProps) {
+export default function VoiceRecorder({ patientId, onTranscriptionComplete }: VoiceRecorderProps) {
   const { doctor } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -151,13 +149,14 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete, onSt
       }
     }
   };
-
+/*
   const handleStartEHR = () => {
     if (!transcribedText) return;
     // Here we will send just the raw text to the backend
     console.log('Sending raw text to backend:', transcribedText);
     onTranscriptionComplete?.(transcribedText);
   };
+  */
 
   return (
     <div className="space-y-6">

@@ -217,18 +217,4 @@ router.post('/mock-test', async (req, res) => {
 
 module.exports = router;
 
-//"patientDetails": "...",
-//1. Patient Details (including name, age, gender)
-//"patientDetails": string | null,
-/**old code, new code use less token to save budget
- function sanitizeJSON(jsonString) {
-  let sanitizedString = jsonString.trim();
-  if (sanitizedString.startsWith('```json')) sanitizedString = sanitizedString.slice(7);
-  else if (sanitizedString.startsWith('```')) sanitizedString = sanitizedString.slice(3);
-  if (sanitizedString.endsWith('```')) sanitizedString = sanitizedString.slice(0, -3);
-  if (sanitizedString.endsWith('}}')) sanitizedString = sanitizedString.slice(0, -1);
-  return sanitizedString.trim();
-}
-
- * 
- */
+// Doctor does not say diagnosis or treatment as keyword, but AI should have abilaity to guess it
