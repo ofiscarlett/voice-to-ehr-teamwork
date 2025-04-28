@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Process the text here, e.g., save it to a database or perform some analysis
       console.log("Debug processing text:", text); // Log the text being processed
 //test new code
-      const backendResponse = await fetch("http://localhost:5000/api/analysis/analyze", {
+      const backendResponse = await fetch("http://localhost:5001/api/analysis/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,31 +36,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: 'error',
           code: backendResponse.status,
           message: BackendResult.message || 'Backend analysis failed',
-          data: BackendResult.data || null,
+          data: BackendResult.data || null
         });
       }
       console.log('Debug API response:', BackendResult); 
-      return res.status(200).json
-    ({
+      return res.status(200).json({
         status: 'success',
         code: 200,
         message: 'Analysis completed',
-        data: BackendResult,
+        data: BackendResult
       });
-     
 
     } catch (error) {
-        console.error('Internal text:', error);
+        console.error('Internal error:', error);
         return res.status(500).json({
             status: 'error',
             code: 500,
             message: 'Internal server error',
-            data: null,
-          });
-          
-        }   
-        
-        
+            data: null
+        });
+    }   
 }
 //old code
 /*
