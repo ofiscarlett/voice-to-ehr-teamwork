@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
-import MainNav from "@/components/common/MainNav";
 import { AuthProvider } from "@/components/auth/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,10 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="h-screen">
+      <body className={`${inter.className} h-screen`}>
         <AuthProvider>
-          <MainNav />
           {children}
         </AuthProvider>
       </body>

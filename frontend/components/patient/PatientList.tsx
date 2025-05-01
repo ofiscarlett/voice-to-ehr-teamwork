@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Patient {
   id: string;
@@ -18,23 +19,32 @@ export default function PatientList() {
   const router = useRouter();
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="grid grid-cols-2 gap-4 bg-black text-white p-4">
-        <div>Patient name</div>
-        <div>Identity Number</div>
+    <div className="overflow-hidden flex flex-col">
+      <div className="grid grid-cols-2 bg-black text-white px-[30px] py-7">
+        <div className="text-base">Patient name</div>
+        <div className="text-base">Identity Number</div>
       </div>
 
-      <div className="divide-y">
+      <div className="mt-4 space-y-2">
         {patients.map((patient) => (
-          <div key={patient.id} className="grid grid-cols-2 gap-4 p-4 items-center">
-            <div>{patient.name}</div>
+          <div 
+            key={patient.id} 
+            className="grid grid-cols-2 px-[30px] py-5 items-center bg-[#FAFAFA] hover:bg-[#EEEEEE]"
+          >
+            <div className="text-base">{patient.name}</div>
             <div className="flex justify-between items-center">
-              <span>{patient.id}</span>
+              <span className="text-base">{patient.id}</span>
               <button
                 onClick={() => router.push(`/patient/${patient.id}`)}
-                className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                className="bg-[#E6E6E6] text-black px-4 py-2 text-sm flex items-center gap-2 hover:bg-black hover:text-white"
               >
-                View in EHR station
+                <Image 
+                  src="/icons/search.svg" 
+                  alt="Search" 
+                  width={16} 
+                  height={16} 
+                />
+                View on EHR station
               </button>
             </div>
           </div>

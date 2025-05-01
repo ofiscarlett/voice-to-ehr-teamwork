@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
-import { text } from 'stream/consumers';
 
 interface VoiceRecorderProps {
   patientId: string;
@@ -12,33 +11,16 @@ interface VoiceRecorderProps {
 export default function VoiceRecorder({ patientId, onTranscriptionComplete }: VoiceRecorderProps) {
   const { doctor } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcribedText, setTranscribedText] = useState('');
   const [error, setError] = useState<string>('');
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
-  // Load saved transcription on component mount only if authenticated
-  useEffect(() => {
-    if (doctor) {
-      const savedTranscription = localStorage.getItem(`transcription_${patientId}`);
-      if (savedTranscription) {
-        setTranscribedText(savedTranscription);
-        onTranscriptionComplete?.(savedTranscription);
-      }
-    } else {
-      // Clear transcription if not authenticated
-      setTranscribedText('');
-      onTranscriptionComplete?.('');
-    }
-  }, [patientId, onTranscriptionComplete, doctor]);
-
-  const startRecording = async () => {    
+  const startRecording = async () => {
     try {
+      audioChunks.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
-      audioChunks.current = [];
 
       mediaRecorder.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -46,9 +28,8 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
         }
       };
 
-      mediaRecorder.current.start(1000);
+      mediaRecorder.current.start();
       setIsRecording(true);
-      setIsPaused(false);
       setError('');
     } catch (error) {
       console.error('Error accessing microphone:', error);
@@ -56,129 +37,88 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
     }
   };
 
-  const pauseRecording = () => {
-    if (mediaRecorder.current?.state === 'recording') {
-      mediaRecorder.current.pause();
-      setIsPaused(true);
-    }
-  };
+  const stopRecording = async () => {
+    if (!mediaRecorder.current || mediaRecorder.current.state !== 'recording') return;
 
-  const resumeRecording = () => {
-    if (mediaRecorder.current?.state === 'paused') {
-      mediaRecorder.current.resume();
-      setIsPaused(false);
-    }
-  };
+    setIsTranscribing(true);
+    mediaRecorder.current.stop();
+    setIsRecording(false);
 
-  const transcribeAudio = async (audioBlob: Blob) => {
     try {
+      await new Promise<void>((resolve) => {
+        if (!mediaRecorder.current) return resolve();
+        mediaRecorder.current.onstop = () => resolve();
+      });
+
+      const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+      console.log('Audio blob created:', {
+        type: audioBlob.type,
+        size: audioBlob.size
+      });
+
       const apiKey = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
-      console.log("🔑 env API key:", process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
-      if (!apiKey) {
-        throw new Error('Deepgram API key not found');
-      }
-      console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
-      console.log("Audio blob size:", audioBlob.size); // should not be 0
-      
+      if (!apiKey) throw new Error('Deepgram API key not found');
+
       const response = await fetch('https://api.deepgram.com/v1/listen?model=general&language=en-US', {
         method: 'POST',
         headers: {
           'Authorization': `Token ${apiKey}`,
-          //old code
-          'Content-Type': 'audio/wav'
+          'Content-Type': 'audio/webm'
         },
         body: audioBlob
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Deepgram error response:', errorText);//debug code
         throw new Error(`Deepgram API error: ${response.statusText}. ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Deepgram response:", data);
-      //new code
       const transcript = data?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
-      if (!transcript || transcript.trim() === '') {
-        throw new Error('No speech detected in audio.');
+
+      if (!transcript) throw new Error('No transcription received');
+
+      // Immediately update parent with transcription
+      onTranscriptionComplete?.(transcript);
+
+      // Save to localStorage if authenticated
+      if (doctor) {
+        localStorage.setItem(`transcription_${patientId}`, transcript);
       }
-  
-      return transcript;
-      //return data.results?.channels[0]?.alternatives[0]?.transcript || '';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transcription error:', error);
-      throw error;
+      setError(error.message || 'Error during transcription. Please try again.');
+    } finally {
+      setIsTranscribing(false);
+      // Stop all tracks
+      mediaRecorder.current?.stream.getTracks().forEach(track => track.stop());
     }
   };
-
-  const stopRecording = async () => {
-    if (mediaRecorder.current) {
-      mediaRecorder.current.stop();
-      setIsRecording(false);
-      setIsPaused(false);
-      setIsTranscribing(true);
-      setError('');
-
-      try {
-        await new Promise(resolve => {
-          if (mediaRecorder.current) {
-            mediaRecorder.current.addEventListener('stop', resolve, { once: true });
-          }
-        });
-
-        //old code
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
-
-        console.log("Audio blob type:", audioBlob.type); // eg"audio/wav"
-        console.log("Audio blob size:", audioBlob.size); // should not be 0
-        const transcript = await transcribeAudio(audioBlob);
-        
-        // Only save transcription if authenticated
-        if (doctor) {
-          localStorage.setItem(`transcription_${patientId}`, transcript);
-        }
-        setTranscribedText(transcript);
-        onTranscriptionComplete?.(transcript);
-      } catch (error) {
-        console.error('Error during transcription:', error);
-        setError('Error during transcription. Please try again.');
-      } finally {
-        setIsTranscribing(false);
-        mediaRecorder.current?.stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  };
-/*
-  const handleStartEHR = () => {
-    if (!transcribedText) return;
-    // Here we will send just the raw text to the backend
-    console.log('Sending raw text to backend:', transcribedText);
-    onTranscriptionComplete?.(transcribedText);
-  };
-  */
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <button
-            onClick={isRecording ? (isPaused ? resumeRecording : pauseRecording) : startRecording}
+            onClick={startRecording}
+            disabled={isRecording || isTranscribing}
             className={`w-full p-4 rounded ${
               isRecording
                 ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                 : 'bg-gray-200 hover:bg-gray-300'
-            }`}
+            } disabled:opacity-50`}
           >
-            {isRecording ? (isPaused ? 'Resume Recording' : 'Pause Recording') : 'Record'}
+            Record
+            <div className="text-sm text-gray-600">
+              Click to start recording
+            </div>
           </button>
-          <p className="text-sm text-gray-500 text-center mt-2">This will record your voice</p>
         </div>
 
         <div>
           <button
             onClick={stopRecording}
-            disabled={!isRecording}
+            disabled={!isRecording || isTranscribing}
             className={`w-full p-4 rounded ${
               isTranscribing
                 ? 'bg-blue-500 animate-pulse'
@@ -186,8 +126,10 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
             } disabled:opacity-50`}
           >
             {isTranscribing ? 'Transcribing...' : 'Stop'}
+            <div className="text-sm text-gray-600">
+              {isTranscribing ? 'Processing...' : 'Click to stop and transcribe'}
+            </div>
           </button>
-          <p className="text-sm text-gray-500 text-center mt-2">This will transcript your voice</p>
         </div>
       </div>
 
@@ -196,20 +138,6 @@ export default function VoiceRecorder({ patientId, onTranscriptionComplete }: Vo
           {error}
         </div>
       )}
- {/**Cancel the Start EHR btn and move to Page.tsx */}
- {/*
-      <div className="w-full">
-        <button
-          //onClick={handleStartEHR}
-          onClick={onStartEHR}
-          disabled={!transcribedText}
-          className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Start EHR
-        </button>
-        <p className="text-sm text-gray-500 text-center mt-2">This will turn your transcripted voice into an EHR</p>
-      </div>
-      */}
     </div>
   );
 } 

@@ -1,3 +1,5 @@
+'use client';
+
 interface Patient {
   id: string;
   name: string;
@@ -27,15 +29,15 @@ export default function PatientHeader({ patientId }: PatientHeaderProps) {
   }
 
   return (
-    <div className="mb-6">
+    <div>
       <div className="space-y-2">
         <div>
           <span className="text-gray-500">Patient Name: </span>
-          <span>{patient.name}</span>
+          <span className="text-lg">{patient.name}</span>
         </div>
         <div>
           <span className="text-gray-500">Patient ID: </span>
-          <span>{patient.id}</span>
+          <span className="text-lg">{patient.id}</span>
         </div>
       </div>
     </div>

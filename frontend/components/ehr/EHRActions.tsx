@@ -6,17 +6,41 @@ import { useRouter } from 'next/navigation';
 interface EHRActionsProps {
   onSave?: () => void;
   disabled?: boolean;
+  structuredEhr?: any;
 }
 
-export default function EHRActions({ onSave, disabled = false }: EHRActionsProps) {
+export default function EHRActions({ onSave, disabled = false, structuredEhr }: EHRActionsProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave();
+  const handleSave = async () => {
+    if (!structuredEhr) return;
+    
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/save-ehr-api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ structuredEhr }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save EHR');
+      }
+
+      if (onSave) {
+        onSave();
+      }
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error saving EHR:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsSaving(false);
     }
-    setShowModal(true);
   };
 
   return (
@@ -24,12 +48,10 @@ export default function EHRActions({ onSave, disabled = false }: EHRActionsProps
       <div className="mt-8 flex justify-end">
         <button
           onClick={handleSave}
-          disabled={disabled}
-          //className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={disabled || !structuredEhr || isSaving}
           className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-
         >
-          Save EHR
+          {isSaving ? 'Saving...' : 'Save EHR'}
         </button>
       </div>
 

@@ -1,10 +1,17 @@
 'use client';
+import Image from 'next/image';
 
 export default function Header() {
   return (
-    <header className="flex justify-between items-center p-4">
+    <header className="flex justify-between items-center p-4 bg-white">
       <div className="logo">
-        <img src="/images/logo.svg" alt="Tietoevry" />
+        <Image
+          src="/icons/tietoevry-logo-digital.png"
+          alt="Tietoevry"
+          width={120}
+          height={40}
+          priority
+        />
       </div>
       
       <div className="flex items-center gap-4">
@@ -16,7 +23,13 @@ export default function Header() {
       </div>
       
       <div className="lifecare-logo">
-        <img src="/images/lifecare.svg" alt="Lifecare" />
+        <Image
+          src="/icons/lifecare-digital-logo.png"
+          alt="Lifecare"
+          width={120}
+          height={40}
+          priority
+        />
       </div>
     </header>
   );

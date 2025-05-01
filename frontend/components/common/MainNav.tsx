@@ -2,11 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/AuthContext';
-import Link from 'next/link';
+import Image from 'next/image';
 
 export default function MainNav() {
   const router = useRouter();
-  const { doctor, logout } = useAuth();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -14,34 +14,41 @@ export default function MainNav() {
   };
 
   return (
-    <nav className="w-full bg-white border-b">
-      <div className="max-w-[1920px] mx-auto px-8 py-4 flex justify-between items-center">
-        <div className="w-40">
-          <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold">Voice to EHR</span>
-          </Link>
-        </div>
-
-        {doctor && (
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-purple-900 rounded-full" />
-              <span>{doctor.name}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-800 relative group cursor-pointer"
-            >
-              Logout
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-800 transform scale-x-0 transition-transform group-hover:scale-x-100" />
-            </button>
+    <nav className="absolute top-16 left-10 right-10 flex justify-between items-center">
+      <Image
+        src="/icons/tietoevry-logo-digital.png"
+        alt="Tietoevry Logo"
+        width={150}
+        height={40}
+        priority
+      />
+      
+      <div className="flex items-center">
+        <div className="flex items-center border-b border-[#1A1A1A] pb-2">
+          <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center mr-3">
+            <img
+              src="/icons/doctor-icon.svg"
+              alt="Doctor"
+              className="w-6 h-6"
+            />
           </div>
-        )}
-
-        <div className="w-40 flex justify-end">
-          <span className="text-xl font-semibold">Lifecare</span>
+          <span className="text-xl font-normal mr-6">Dr. Ilponen</span>
+          <button
+            onClick={handleLogout}
+            className="text-xl font-normal text-black hover:text-gray-600"
+          >
+            Logout
+          </button>
         </div>
       </div>
+
+      <Image
+        src="/icons/lifecare-digital-logo.png"
+        alt="Lifecare Logo"
+        width={150}
+        height={40}
+        priority
+      />
     </nav>
   );
 } 
