@@ -39,38 +39,71 @@ export default function LoginForm() {
           />
         </nav>
 
-        <div className="absolute left-1/2 top-[260px] -translate-x-1/2 flex flex-col items-center w-[512px]">
+        <div className="absolute left-1/2 top-[200px] -translate-x-1/2 flex flex-col items-center w-[512px]">
           <div className="text-center mb-[100px]">
-            <h1 className="text-4xl font-bold mb-2">Voice to EHR</h1>
-            <p className="text-gray-600">MVP version 1.0.0</p>
+            <h1 className="text-[#171717] text-[44px] font-bold leading-normal">Voice to EHR</h1>
+            <p className="text-gray-600 text-sm mb-8">MVP version 1.0.0</p>
           </div>
           
           <form onSubmit={handleLogin} className="w-full space-y-8">
-            <div className="space-y-6">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full p-3 border-b border-gray-300 focus:border-gray-900 outline-none"
-                placeholder="Doctor's entry-code"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 border-b border-gray-300 focus:border-gray-900 outline-none"
-                placeholder="Doctor's password"
-              />
+            <div className="space-y-10">
+              <div className="flex flex-col gap-16">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full border-b border-gray-300 focus:border-[#171717] group-hover:border-[#171717] outline-none peer placeholder-transparent text-left text-[16px] hover:cursor-pointer"
+                    placeholder="Doctor's entry-code"
+                    id="username-input"
+                  />
+                  <label htmlFor="username-input"
+                    className="absolute left-0 top-[calc(50%-16px)] -translate-y-1/2 text-gray-400 transition-all duration-200 ease-in-out pointer-events-none group-hover:-translate-y-[calc(50%+8px)] peer-focus:top-[-28px] peer-focus:-translate-y-0 peer-focus:text-[12px] peer-focus:text-gray-400 peer-[&:not(:placeholder-shown)]:top-[-28px] peer-[&:not(:placeholder-shown)]:-translate-y-0 peer-[&:not(:placeholder-shown)]:text-[12px] peer-[&:not(:placeholder-shown)]:text-gray-400 peer-focus:text-[#171717] peer-[&:not(:placeholder-shown)]:text-[#171717] group-hover:text-[#171717] bg-white px-1 text-[16px]"
+                  >
+                    Doctor's entry-code
+                  </label>
+                </div>
+                <div className="relative group mb-9">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full border-b border-gray-300 focus:border-[#171717] group-hover:border-[#171717] outline-none peer placeholder-transparent text-left text-[16px] hover:cursor-pointer"
+                    placeholder="Doctor's password"
+                    id="password-input"
+                  />
+                  <label htmlFor="password-input"
+                    className="absolute left-0 top-[calc(50%-16px)] -translate-y-1/2 text-gray-400 transition-all duration-200 ease-in-out pointer-events-none group-hover:-translate-y-[calc(50%+8px)] peer-focus:top-[-28px] peer-focus:-translate-y-0 peer-focus:text-[12px] peer-focus:text-gray-400 peer-[&:not(:placeholder-shown)]:top-[-28px] peer-[&:not(:placeholder-shown)]:-translate-y-0 peer-[&:not(:placeholder-shown)]:text-[12px] peer-[&:not(:placeholder-shown)]:text-gray-400 peer-focus:text-[#171717] peer-[&:not(:placeholder-shown)]:text-[#171717] group-hover:text-[#171717] bg-white px-1 text-[16px]"
+                  >
+                    Doctor's password
+                  </label>
+                </div>
+              </div>
             </div>
             {error && (
               <div className="text-red-500 text-center">{error}</div>
             )}
             <button
               type="submit"
-              className="w-full bg-black text-white p-4 hover:bg-gray-800 flex items-center justify-center space-x-2"
+              className="w-full bg-black text-white py-4 px-4 hover:bg-[#262626] transition-colors duration-200 ease-in-out flex items-center justify-center gap-2 cursor-pointer group"
             >
-              <span>Login</span>
-              <span className="text-xl">⌘</span>
+              <span className="flex items-center gap-2">
+                <span>Login</span>
+                <span className="relative flex items-center justify-center w-[18px] h-[18px]">
+                  <span className="flex items-center gap-[1px] transition-all duration-300 ease-in-out group-hover:rotate-90 group-hover:items-end">
+                    {/* Bar 1 */}
+                    <div className="bg-white rounded-full transition-all duration-300 ease-in-out w-[2px] h-[8px] group-hover:h-[4px]" />
+                    {/* Bar 2 */}
+                    <div className="bg-white rounded-full transition-all duration-300 ease-in-out w-[2px] h-[4px] group-hover:h-[10px]" />
+                    {/* Bar 3 */}
+                    <div className="bg-white rounded-full transition-all duration-300 ease-in-out w-[2.4px] h-[12px] group-hover:w-[2px] group-hover:h-[10px]" />
+                    {/* Bar 4 */}
+                    <div className="bg-white rounded-full transition-all duration-300 ease-in-out w-[2px] h-[6px] group-hover:h-[10px]" />
+                    {/* Bar 5 */}
+                    <div className="bg-white rounded-full transition-all duration-300 ease-in-out w-[2px] h-[9px] group-hover:h-[10px]" />
+                  </span>
+                </span>
+              </span>
             </button>
           </form>
         </div>
