@@ -153,14 +153,7 @@ export default function PatientPage() {
               {/* Left Section */}
               <div className="flex flex-col min-h-0">
                 <div className="space-y-2 mb-[100px]">
-                  <div>
-                    <span className="text-gray-500">Patient Name: </span>
-                    <span className="text-lg">{patientId}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Patient ID: </span>
-                    <span className="text-lg">{patientId}</span>
-                  </div>
+                  <PatientHeader patientId={patientId} />
                 </div>
                 <div className="flex-1 min-h-0 overflow-auto">
                   <div className="grid grid-cols-2 gap-4 mb-8">
