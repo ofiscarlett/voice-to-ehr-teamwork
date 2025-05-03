@@ -14,7 +14,7 @@ export default function MainNav() {
   };
 
   return (
-    <nav className="absolute top-16 left-10 right-10 flex justify-between items-center">
+    <nav className="absolute top-11 left-10 right-10 flex justify-between items-center">
       <Image
         src="/icons/tietoevry-logo-digital.png"
         alt="Tietoevry Logo"
@@ -22,26 +22,25 @@ export default function MainNav() {
         height={34}
         priority
       />
-      
-      <div className="flex items-center">
-        <div className="flex items-center border-b border-[#1A1A1A] pb-2">
-          <div className="w-5 h-5 rounded-full bg-[#1A1A1A] flex items-center justify-center mr-1.5">
+      <div className="inline-flex flex-col items-center">
+        <div className="inline-flex flex-row items-center pt-[20px]" id="middle-content">
+          <div className="flex justify-center items-center aspect-square w-5 h-5 rounded-full border border-[#280071] bg-[#280071] mr-2">
             <img
-              src="/icons/doctor-icon.svg"
+              src="/icons/doctor-img.png"
               alt="Doctor"
-              className="w-3 h-3"
+              className="w-full h-full object-cover rounded-full"
             />
           </div>
-          <span className="text-xl font-normal mr-6">Dr. Ilponen</span>
+          <span className="text-base font-semibold text-[#280071] mr-[60px]">Dr. Ilponen</span>
           <button
             onClick={handleLogout}
-            className="text-xl font-normal text-black hover:text-gray-600"
+            className="text-base font-medium text-[#737373] ml-4 cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-[1px] hover:text-[#404040]"
           >
-            Logout
+            Log out
           </button>
         </div>
+        <div className="border-b border-[#737373] w-[calc(100%+16px)] -mx-[8px] mt-3 rounded-full" style={{ borderWidth: '1.1px' }} />
       </div>
-
       <Image
         src="/icons/lifecare-digital-logo.png"
         alt="Lifecare Logo"
