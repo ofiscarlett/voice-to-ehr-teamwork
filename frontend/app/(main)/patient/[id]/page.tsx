@@ -145,13 +145,13 @@ export default function PatientPage() {
   };
 
   return (
-    <div className="h-full flex flex-col px-[69px] py-8">
+    <div className="h-full flex flex-col max-w-[calc(100vw-80px)] mx-auto px-10">
       <div className="w-full mx-auto flex flex-col flex-1 min-h-0">
         <div className="flex-1 min-h-0">
-          <div className="bg-[#FAFAFA] rounded-lg p-[30px]">
-            <div className="grid grid-cols-2 gap-[30px]">
+          <div className="bg-[#FAFAFA] pt-[32px] pb-[22px] px-[34px] mt-[60px] mb-[40px] h-[80vh]">
+            <div className="grid grid-cols-[39%_59%] gap-[30px] h-full">
               {/* Left Section */}
-              <div className="flex flex-col min-h-0">
+              <div className="flex flex-col h-full col-span-1">
                 <div className="space-y-2 mb-[100px]">
                   <PatientHeader patientId={patientId} />
                 </div>
@@ -160,7 +160,7 @@ export default function PatientPage() {
                     <button
                       onClick={startRecording}
                       disabled={isRecording || isTranscribing}
-                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50 rounded"
+                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50"
                     >
                       Record
                       <div className="text-sm text-gray-600">
@@ -170,7 +170,7 @@ export default function PatientPage() {
                     <button
                       onClick={stopRecording}
                       disabled={!isRecording || isTranscribing}
-                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50 rounded"
+                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50"
                     >
                       Stop
                       <div className="text-sm text-gray-600">
@@ -181,16 +181,16 @@ export default function PatientPage() {
                   <button
                     onClick={handleStartEHR}
                     disabled={!transcribedText || isProcessing}
-                    className="w-full bg-black text-white p-4 rounded hover:bg-gray-800 disabled:opacity-50"
+                    className="w-full bg-black text-white p-4 hover:bg-gray-800 disabled:opacity-50"
                   >
                     {isProcessing ? 'Processing...' : 'Start EHR'}
                     <div className="text-sm">This will turn your transcripted voice into an EHR</div>
                   </button>
                 </div>
-                <div className="pt-[30px]">
+                <div>
                   <button
                     onClick={() => router.push('/dashboard')}
-                    className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] rounded text-center"
+                    className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] text-center"
                   >
                     Patient's dashboard
                   </button>
@@ -198,97 +198,77 @@ export default function PatientPage() {
               </div>
 
               {/* Right Section */}
-              <div className="flex flex-col min-h-0">
-                <div className="flex-1 min-h-0">
-                  <div className="h-[600px] bg-white p-[30px] rounded border overflow-y-auto">
-                    {structuredEhr ? (
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center sticky top-0 bg-white pb-4 z-10">
-                          <strong>Check and modify EHR</strong>
-                          <span className="text-sm text-green-600">✓ EHR generated</span>
+              <div className="flex flex-col min-h-0 h-full col-span-1">
+                <strong className="text-xl">Check and modify EHR</strong>
+                <div className="flex-1 bg-white p-[30px] mt-[20px] mb-[20px] overflow-y-auto">
+                  {structuredEhr ? (
+                    <div className="space-y-6">
+                      <div className="space-y-4 font-mono text-sm">
+                        <div>
+                          <div className="font-semibold mb-2">Symptoms</div>
+                          <div className="p-2 bg-white">
+                            <textarea
+                              value={structuredEhr.report?.symptoms || ''}
+                              onChange={(e) => handleFieldChange('symptoms', e.target.value)}
+                              className="w-full p-2 border min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+                              placeholder="Enter symptoms..."
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-4 font-mono text-sm">
-                          <div>
-                            <div className="font-semibold mb-2">Symptoms</div>
-                            <div className="p-2 bg-white rounded border">
-                              <textarea
-                                value={structuredEhr.report?.symptoms || ''}
-                                onChange={(e) => handleFieldChange('symptoms', e.target.value)}
-                                className="w-full p-2 border rounded min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
-                                placeholder="Enter symptoms..."
-                              />
-                            </div>
+                        <div>
+                          <div className="font-semibold mb-2">Diagnosis</div>
+                          <div className="p-2 bg-white">
+                            <textarea
+                              value={structuredEhr.report?.diagnosis || ''}
+                              onChange={(e) => handleFieldChange('diagnosis', e.target.value)}
+                              className="w-full p-2 border min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+                              placeholder="Enter diagnosis..."
+                            />
                           </div>
-                          <div>
-                            <div className="font-semibold mb-2">Diagnosis</div>
-                            <div className="p-2 bg-white rounded border">
-                              <textarea
-                                value={structuredEhr.report?.diagnosis || ''}
-                                onChange={(e) => handleFieldChange('diagnosis', e.target.value)}
-                                className="w-full p-2 border rounded min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
-                                placeholder="Enter diagnosis..."
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="font-semibold mb-2">Treatment</div>
-                            <div className="p-2 bg-white rounded border">
-                              <textarea
-                                value={structuredEhr.report?.treatment || ''}
-                                onChange={(e) => handleFieldChange('treatment', e.target.value)}
-                                className="w-full p-2 border rounded min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
-                                placeholder="Enter treatment..."
-                              />
-                            </div>
-                          </div>
-                          {structuredEhr.report?.OTHERS && (
-                            <div>
-                              <div className="font-semibold mb-2">Additional Notes</div>
-                              <div className="p-2 bg-white rounded border">
-                                <textarea
-                                  value={structuredEhr.report?.OTHERS || ''}
-                                  onChange={(e) => handleFieldChange('OTHERS', e.target.value)}
-                                  className="w-full p-2 border rounded min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
-                                  placeholder="Enter additional notes..."
-                                />
-                              </div>
-                            </div>
-                          )}
                         </div>
-                        {structuredEhr.warnings && structuredEhr.warnings.length > 0 && (
-                          <div className="mt-6 p-2 bg-yellow-50 rounded border border-yellow-200">
-                            <strong>AI Suggestions:</strong>
-                            <ul className="mt-1 list-disc list-inside text-yellow-700">
-                              {structuredEhr.warnings.map((warning: string, index: number) => (
-                                <li key={index}>{warning}</li>
-                              ))}
-                            </ul>
+                        <div>
+                          <div className="font-semibold mb-2">Treatment</div>
+                          <div className="p-2 bg-white">
+                            <textarea
+                              value={structuredEhr.report?.treatment || ''}
+                              onChange={(e) => handleFieldChange('treatment', e.target.value)}
+                              className="w-full p-2 border min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+                              placeholder="Enter treatment..."
+                            />
+                          </div>
+                        </div>
+                        {structuredEhr.report?.OTHERS && (
+                          <div>
+                            <div className="font-semibold mb-2">Additional Notes</div>
+                            <div className="p-2 bg-white">
+                              <textarea
+                                value={structuredEhr.report?.OTHERS || ''}
+                                onChange={(e) => handleFieldChange('OTHERS', e.target.value)}
+                                className="w-full p-2 border min-h-[80px] focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+                                placeholder="Enter additional notes..."
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <strong>Check and modify EHR</strong>
-                          {transcribedText && (
-                            <span className="text-sm text-green-600">✓ Text received</span>
-                          )}
+                      {structuredEhr.warnings && structuredEhr.warnings.length > 0 && (
+                        <div className="mt-6 p-2 bg-yellow-50 border border-yellow-200">
+                          <strong>AI Suggestions:</strong>
+                          <ul className="mt-1 list-disc list-inside text-yellow-700">
+                            {structuredEhr.warnings.map((warning: string, index: number) => (
+                              <li key={index}>{warning}</li>
+                            ))}
+                          </ul>
                         </div>
-                        <div 
-                          className="min-h-[500px] bg-white p-4 border rounded shadow-sm font-mono text-gray-700 whitespace-pre-wrap"
-                        >
-                          {transcribedText || 'Transcribed text will appear here...'}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  {error && (
-                    <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
-                      {error}
+                      )}
+                    </div>
+                  ) : (
+                    <div className="font-mono text-xl text-gray-700 whitespace-pre-wrap">
+                      {transcribedText || 'Transcribed text will be here'}
                     </div>
                   )}
                 </div>
-                <div className="pt-[30px]">
+                <div>
                   <EHRActions structuredEhr={structuredEhr} />
                 </div>
               </div>

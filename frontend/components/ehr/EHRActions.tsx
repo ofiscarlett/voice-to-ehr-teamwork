@@ -45,11 +45,11 @@ export default function EHRActions({ onSave, disabled = false, structuredEhr }: 
 
   return (
     <>
-      <div className="mt-8 flex justify-end">
+      <div className=" flex justify-end">
         <button
           onClick={handleSave}
           disabled={disabled || !structuredEhr || isSaving}
-          className="w-full p-4 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full p-4 bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving...' : 'Save EHR'}
         </button>
@@ -73,7 +73,7 @@ export default function EHRActions({ onSave, disabled = false, structuredEhr }: 
             </ul>
             <button
               onClick={() => router.push('/dashboard')}
-              className="w-full bg-black text-white p-3 rounded hover:bg-gray-800"
+              className="w-full bg-black text-white p-3 hover:bg-gray-800"
             >
               Patient's dashboard
             </button>
