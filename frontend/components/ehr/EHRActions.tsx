@@ -59,25 +59,36 @@ export default function EHRActions({ onSave, disabled = false, structuredEhr }: 
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gray-200/60 backdrop-blur-sm"></div>
+          <div className="relative bg-white shadow-2xl w-[1024px] h-[600px] px-[172px] pt-[120px] pb-[50px] z-10 flex flex-col items-center justify-start">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-[20px] right-[20px] transition-transform duration-200 ease-in-out cursor-pointer group"
+              style={{padding: 0}}
+            >
+              <img
+                src="/icons/close.svg"
+                alt="Close"
+                width={28}
+                height={28}
+                className="group-hover:rotate-90 transition-transform duration-200 ease-in-out"
+              />
+            </button>
+            <div className="flex items-center w-full mb-0" style={{gap: '10px'}}>
+              <img src="/icons/checkbox.svg" alt="checkbox" width={32} height={32} />
+              <span className="text-[24px] font-semibold text-left">EHR saved successfully</span>
             </div>
-            <h3 className="text-xl font-bold mb-4">✓ EHR saved successfully</h3>
-            <ul className="space-y-2 mb-6">
-              <li>• Close this modal window to continue modifying from where you left.</li>
-              <li>• Go back to Patient's dashboard for starting new EHR.</li>
-            </ul>
+            <div className="flex flex-col items-start w-full mt-[60px] mb-0" style={{gap: '24px'}}>
+              <span className="text-[16px] text-[#757575] text-left">• Close this modal window to continue modifying from where you left.</span>
+              <span className="text-[16px] text-[#757575] text-left">• Go back to Patient's dashboard for starting new EHR.</span>
+            </div>
             <button
               onClick={() => router.push('/dashboard')}
-              className="w-full bg-black text-white p-3 hover:bg-gray-800"
+              className="bg-black text-white text-[16px] font-semibold p-4 flex items-center justify-center group transition-colors duration-200 ease-in-out hover:bg-[#222] mx-auto w-[340px] cursor-pointer"
+              style={{position: 'absolute', left: 0, right: 0, bottom: '50px'}}
             >
+              <img src="/icons/arrow.svg" alt="arrow" width={18} height={18} className="filter brightness-0 invert transition-transform duration-200 ease-in-out mr-[10px] group-hover:-translate-x-1" />
               Patient's dashboard
             </button>
           </div>
