@@ -198,7 +198,9 @@ export default function PatientPage() {
                       <button
                         onClick={stopRecording}
                         disabled={!isRecording || isTranscribing}
-                        className="w-full p-4 bg-[#E6E6E6] text-black hover:bg-[#16A34A] hover:text-white flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors duration-200 ease-in-out group cursor-pointer"
+                        className={`w-full p-4 flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors duration-200 ease-in-out group cursor-pointer
+                          ${isTranscribing ? 'bg-[#16A34A] text-white' : 'bg-[#E6E6E6] text-black hover:bg-[#16A34A] hover:text-white'}
+                        `}
                       >
                         Transcript
                         <Image 
@@ -206,7 +208,7 @@ export default function PatientPage() {
                           alt="pencil" 
                           width={16} 
                           height={16} 
-                          className={`transition-colors duration-200 ease-in-out group-hover:filter group-hover:brightness-0 group-hover:invert ${isTranscribing ? 'animate-bounce -rotate-12' : ''}`}
+                          className={`transition-colors duration-200 ease-in-out group-hover:filter group-hover:brightness-0 group-hover:invert ${isTranscribing ? 'animate-bounce -rotate-12 filter brightness-0 invert' : ''}`}
                         />
                       </button>
                       <div className="text-[12px] text-gray-600 mt-2 text-center w-full">
