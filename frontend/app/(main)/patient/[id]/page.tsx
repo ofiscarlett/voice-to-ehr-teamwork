@@ -6,6 +6,7 @@ import VoiceRecorder from '@/components/ehr/VoiceRecorder';
 import PatientHeader from '@/components/patient/PatientHeader';
 import BackButton from '@/components/common/BackButton';
 import EHRActions from '@/components/ehr/EHRActions';
+import Image from 'next/image';
 
 export default function PatientPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function PatientPage() {
   const [error, setError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
@@ -28,6 +30,14 @@ export default function PatientPage() {
 
   const startRecording = async () => {
     try {
+      if (isPaused) {
+        // Resume recording
+        mediaRecorder.current?.resume();
+        setIsPaused(false);
+        return;
+      }
+
+      // Start new recording
       audioChunks.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
@@ -47,12 +57,20 @@ export default function PatientPage() {
     }
   };
 
+  const pauseRecording = () => {
+    if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
+      mediaRecorder.current.pause();
+      setIsPaused(true);
+    }
+  };
+
   const stopRecording = async () => {
-    if (!mediaRecorder.current || mediaRecorder.current.state !== 'recording') return;
+    if (!mediaRecorder.current || mediaRecorder.current.state === 'inactive') return;
 
     setIsTranscribing(true);
     mediaRecorder.current.stop();
     setIsRecording(false);
+    setIsPaused(false);
 
     try {
       await new Promise<void>((resolve) => {
@@ -156,50 +174,98 @@ export default function PatientPage() {
                   <PatientHeader patientId={patientId} />
                 </div>
                 <div className="flex-1 min-h-0 overflow-auto">
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <button
-                      onClick={startRecording}
-                      disabled={isRecording || isTranscribing}
-                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50"
-                    >
-                      Record
-                      <div className="text-sm text-gray-600">
-                        This will record your voice
+                  <div className="grid grid-cols-2 gap-2 mb-0">
+                    <div className="flex flex-col items-center w-full">
+                      <button
+                        onClick={isRecording ? pauseRecording : startRecording}
+                        disabled={isTranscribing}
+                        className={`w-full p-4 ${isRecording ? 'bg-[#16A34A] text-white' : 'bg-[#E6E6E6]'} hover:bg-[#16A34A] hover:text-white flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors duration-200 ease-in-out group cursor-pointer`}
+                      >
+                        {isPaused ? 'Continue' : isRecording ? 'Pause' : 'Record'}
+                        <Image 
+                          src="/icons/mic.svg" 
+                          alt="mic" 
+                          width={16} 
+                          height={16} 
+                          className={`transition-colors duration-200 ease-in-out ${isRecording ? 'filter brightness-0 invert' : ''} ${isRecording && !isPaused ? 'animate-bounce' : ''} group-hover:filter group-hover:brightness-0 group-hover:invert`}
+                        />
+                      </button>
+                      <div className="text-[12px] text-gray-600 mt-2 text-center w-full">
+                        {isRecording ? (isPaused ? 'Recording paused' : 'Recording in progress...') : 'This will record your voice'}
                       </div>
-                    </button>
-                    <button
-                      onClick={stopRecording}
-                      disabled={!isRecording || isTranscribing}
-                      className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] disabled:opacity-50"
-                    >
-                      Stop
-                      <div className="text-sm text-gray-600">
-                        This will transcript your voice
+                    </div>
+                    <div className="flex flex-col items-center w-full">
+                      <button
+                        onClick={stopRecording}
+                        disabled={!isRecording || isTranscribing}
+                        className="w-full p-4 bg-[#E6E6E6] text-black hover:bg-[#16A34A] hover:text-white flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors duration-200 ease-in-out group cursor-pointer"
+                      >
+                        Transcript
+                        <Image 
+                          src="/icons/pencil.svg" 
+                          alt="pencil" 
+                          width={16} 
+                          height={16} 
+                          className={`transition-colors duration-200 ease-in-out group-hover:filter group-hover:brightness-0 group-hover:invert ${isTranscribing ? 'animate-bounce -rotate-12' : ''}`}
+                        />
+                      </button>
+                      <div className="text-[12px] text-gray-600 mt-2 text-center w-full">
+                        This will turn your voice to text
                       </div>
-                    </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={handleStartEHR}
-                    disabled={!transcribedText || isProcessing}
-                    className="w-full bg-black text-white p-4 hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {isProcessing ? 'Processing...' : 'Start EHR'}
-                    <div className="text-sm">This will turn your transcripted voice into an EHR</div>
-                  </button>
+                  <div className="flex flex-col items-center w-full mb-8">
+                    <button
+                      onClick={handleStartEHR}
+                      disabled={!transcribedText || isProcessing}
+                      className={`w-full p-4 flex items-center justify-center gap-2 text-[14px] font-semibold mt-[40px] transition-colors duration-200 ease-in-out group cursor-pointer
+                        ${isProcessing ? 'bg-[#16A34A] text-white' : 'bg-black text-white hover:bg-[#16A34A]'}
+                      `}
+                    >
+                      {isProcessing ? 'EHR on Progress' : 'Start EHR'}
+                      <Image 
+                        src="/icons/ehr.svg" 
+                        alt="ehr" 
+                        width={16} 
+                        height={16} 
+                        className={`filter invert brightness-0 transition-colors duration-200 ease-in-out ${isProcessing ? 'animate-pulse' : ''}`}
+                      />
+                    </button>
+                    <div className="text-[12px] text-gray-600 mt-2 text-center w-full">
+                      This will turn your transcripted voice into an EHR
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <button
                     onClick={() => router.push('/dashboard')}
-                    className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] text-center"
+                    className="w-full p-4 bg-[#E6E6E6] hover:bg-[#DDDDDD] text-center flex items-center justify-center gap-2 text-[14px] cursor-pointer group"
                   >
-                    Patient's dashboard
+                    <Image src="/icons/arrow.svg" alt="arrow" width={17} height={17} className="-ml-[2px] transition-transform duration-200 ease-in-out group-hover:-translate-x-1" />
+                    Patient's Dashboard
                   </button>
                 </div>
               </div>
 
               {/* Right Section */}
               <div className="flex flex-col min-h-0 h-full col-span-1">
-                <strong className="text-xl">Check and modify EHR</strong>
+                <div className="flex items-center justify-between">
+                  <div className="text-[16px] text-[#171717] font-semibold">Check and modify EHR</div>
+                  {/* Status icons and info text */}
+                  {structuredEhr ? (
+                    <div className="flex items-center gap-1">
+                      <span className="text-green-600 text-xs">✔</span>
+                      <span className="text-green-600 text-xs font-medium tracking-wide">· EHR Ready ·</span>
+                      <span className="text-green-600 text-xs">✔</span>
+                    </div>
+                  ) : transcribedText ? (
+                    <div className="flex items-center gap-1">
+                      <span className="text-green-600 text-xs">✔</span>
+                      <span className="text-green-600 text-xs font-medium tracking-wide">· Transcription Ready ·</span>
+                      <span className="text-green-600 text-xs">✔</span>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="flex-1 bg-white p-[30px] mt-[20px] mb-[20px] overflow-y-auto">
                   {structuredEhr ? (
                     <div className="space-y-6">
@@ -263,7 +329,7 @@ export default function PatientPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="font-mono text-xl text-gray-700 whitespace-pre-wrap">
+                    <div className="font-['Inter'] text-[14px] text-gray-400 whitespace-pre-wrap">
                       {transcribedText || 'Transcribed text will be here'}
                     </div>
                   )}

@@ -32,12 +32,12 @@ export default function PatientHeader({ patientId }: PatientHeaderProps) {
     <div>
       <div className="space-y-2">
         <div>
-          <span className="text-gray-500">Patient Name: </span>
-          <span className="text-lg">{patient.name}</span>
+          <span className="text-[16px] text-[#171717]">Patient Name: </span>
+          <span className="text-[16px] text-[#171717]">{patient.name}</span>
         </div>
         <div>
-          <span className="text-gray-500">Patient ID: </span>
-          <span className="text-lg">{patient.id}</span>
+          <span className="text-[16px] text-[#171717]">Patient ID: </span>
+          <span className="text-[16px] text-[#171717]">{patient.id}</span>
         </div>
       </div>
     </div>

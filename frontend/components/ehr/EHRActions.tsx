@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface EHRActionsProps {
   onSave?: () => void;
@@ -49,9 +50,11 @@ export default function EHRActions({ onSave, disabled = false, structuredEhr }: 
         <button
           onClick={handleSave}
           disabled={disabled || !structuredEhr || isSaving}
-          className="w-full p-4 bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full bg-black text-white p-4 flex items-center justify-center gap-2 text-[14px] transition-colors duration-200 ease-in-out
+            ${!(disabled || !structuredEhr || isSaving) ? 'hover:bg-[#525252] cursor-pointer' : 'cursor-not-allowed'}`}
         >
           {isSaving ? 'Saving...' : 'Save EHR'}
+          <Image src="/icons/save.svg" alt="save" width={16} height={16} style={{ filter: 'invert(100%)' }} />
         </button>
       </div>
 
