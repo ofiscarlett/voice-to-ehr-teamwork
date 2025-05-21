@@ -14,16 +14,6 @@ This is an end-to-end medical transcription and structured documentation platfor
 
 ---
 
-## 🧱 Architecture Diagram
-
-```mermaid
-graph TD
-  A[Voice Recorder (DeepSeeker)] --> B[Transcribed Text]
-  B --> C[AI Analysis via GPT-4]
-  C --> D[Structured EHR JSON]
-  D --> E[Doctor Review UI]
-  E --> F[Save to EHRbase via REST API]
-
 
 ## Technology Stack
 
